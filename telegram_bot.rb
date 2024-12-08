@@ -14,6 +14,7 @@ class TelegramBot
     @bot.run do |bot|
       bot.listen do |message|
         case message
+
         when Telegram::Bot::Types::Message
           user_id = message.from.id
           case message.text
@@ -73,6 +74,6 @@ class TelegramBot
     return nil
   rescue StandardError => e
     puts "Error in get_user_input: #{e.message}"
-    return nil
+    return nil  
   end
 end
