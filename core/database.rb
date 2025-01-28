@@ -6,6 +6,7 @@ module Core
     def initialize
       @db = SQLite3::Database.new('wishlist.db')
       create_table_gifts
+      create_table_lists
     end
 
     def create_table_gifts
@@ -25,6 +26,7 @@ module Core
       @db.execute <<-SQL
         CREATE TABLE IF NOT EXISTS lists (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
+          wishlist TEXT NOT NULL,
           gift_id INTEGER,
           event_date TEXT,
           FOREIGN KEY (gift_id) REFERENCES items(id)
