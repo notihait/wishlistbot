@@ -3,5 +3,8 @@
 
 require_relative 'core'
 Core.require_source
-
-Core::TelegramBot.new(ENV['TELEGRAM_TOKEN'], Core::Database.new).run
+if ARGV.include? "console"
+  binding.pry
+else 
+  Core::TelegramBot.new(ENV['TELEGRAM_TOKEN'], Core::Database.new).run
+end

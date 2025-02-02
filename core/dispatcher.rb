@@ -22,7 +22,7 @@ module Core
       when '/start'
         home_controller.start(message)
       when 'Создать вишлист'
-        wishlists_controller.create(message)
+        wishlists_controller.new_wishlist(message)
       when 'Просмотреть свои вишлисты'
         wishlists_controller.show_my_wishlists(message)
       when 'Просмотреть вишлист друга'
