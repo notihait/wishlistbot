@@ -17,7 +17,6 @@ module Core
           gift TEXT NOT NULL,
           link TEXT,
           price INTEGER,
-          event_date TEXT,
           state TEXT
         )
       SQL
