@@ -28,7 +28,14 @@ module Core
       when 'Просмотреть вишлист друга'
         wishlists_controller.show_user_wishlists(message)
       else
-        p 5
+        user = @db.find_or_create_user_by_chat_id(message.from.id)
+        case user[:state]
+        when 'creating_wishlist'
+          wishlists_controller.new_wishlist(message)
+          @db.update_user(chat_id: message.from.id, state: nil)
+        else
+          @bot.api.send_message(chat_id: message.from.id, text: 'Я хз')
+        end
       end
     end
   end

@@ -27,7 +27,9 @@ module Core
           user_id INTEGER NOT NULL,
           gift TEXT NOT NULL,
           link TEXT,
-          price INTEGER
+          price INTEGER,
+          if_chosen BOOLEAN,
+          FOREIGN KEY (user_id) REFERENCES users(id)
         )
       SQL
     end
@@ -37,76 +39,97 @@ module Core
         CREATE TABLE IF NOT EXISTS lists (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           wishlist TEXT NOT NULL,
+          user_id INTEGER,
           gift_id INTEGER,
           event_date TEXT,
           FOREIGN KEY (gift_id) REFERENCES items(id)
+          FOREIGN KEY (user_id) REFERENCES users(id)
         )
       SQL
     end
 
     # CRUD methods for users
-    def create_user(chat_id, state)
-      @db.execute("INSERT INTO users (chat_id, state) VALUES (?,?)", [chat_id, state])
+    def create_user(params)
+      @db.execute("INSERT INTO users (chat_id, state) VALUES (?,?)", [params[:chat_id], params[:state]])
     end
 
     def get_user_by_chat_id(chat_id)
-      @db.execute("SELECT * FROM users WHERE chat_id =?", chat_id)
+      user = @db.execute("SELECT * FROM users WHERE chat_id =? LIMIT 1", [chat_id]).first
+      user_to_hash(user) if user
     end
 
-    def update_user(chat_id, state)
-      @db.execute("UPDATE users SET state =? WHERE chat_id =?", [state, chat_id])
+    def update_user(params)
+      @db.execute("UPDATE users SET state =? WHERE chat_id =?", [params[:state], params[:chat_id]])
     end
 
-    def delete_user(chat_id)
-      @db.execute("DELETE FROM users WHERE chat_id =?", chat_id)
+    def delete_user(params)
+      @db.execute("DELETE FROM users WHERE chat_id =?", [params[:chat_id]])
     end
 
     # CRUD methods for gifts
-    def create_gift(user_id, gift, link, price)
-      @db.execute("INSERT INTO items (user_id, gift, link, price) VALUES (?,?,?,?)", [user_id, gift, link, price])
+    def create_gift(params)
+      @db.execute("INSERT INTO items (user_id, gift, link, price) VALUES (?,?,?,?)", [params[:user_id], params[:gift], params[:link], params[:price]])
     end
 
     def get_gifts_by_user_id(user_id)
-      @db.execute("SELECT * FROM items WHERE user_id =?", user_id)
+      @db.execute("SELECT * FROM items WHERE user_id =?", [user_id]).map { |gift| gift_to_hash(gift) }
     end
 
-    def update_gift(id, gift, link, price)
-      @db.execute("UPDATE items SET gift =?, link =?, price =? WHERE id =?", [gift, link, price, id])
+    def update_gift(params)
+      @db.execute("UPDATE items SET gift =?, link =?, price =? WHERE id =?", [params[:gift], params[:link], params[:price], params[:id]])
     end
 
-    def delete_gift(id)
-      @db.execute("DELETE FROM items WHERE id =?", id)
+    def delete_gift(params)
+      @db.execute("DELETE FROM items WHERE id =?", [params[:id]])
     end
 
     # CRUD methods for lists
-    def create_list(wishlist, gift_id, event_date)
-      @db.execute("INSERT INTO lists (wishlist, gift_id, event_date) VALUES (?,?,?)", [wishlist, gift_id, event_date])
+    def create_list(params)
+      @db.execute("INSERT INTO lists (wishlist, gift_id, event_date) VALUES (?,?,?)", [params[:wishlist], params[:gift_id], params[:event_date]])
     end
 
     def get_lists
-      @db.execute("SELECT * FROM lists")
+      @db.execute("SELECT * FROM lists").map { |list| list_to_hash(list) }
     end
 
-    def update_list(id, wishlist, gift_id, event_date)
-      @db.execute("UPDATE lists SET wishlist =?, gift_id =?, event_date =? WHERE id =?", [wishlist, gift_id, event_date, id])
+    def update_list(params)
+      @db.execute("UPDATE lists SET wishlist =?, gift_id =?, event_date =? WHERE id =?", [params[:wishlist], params[:gift_id], params[:event_date], params[:id]])
     end
 
-    def delete_list(id)
-      @db.execute("DELETE FROM lists WHERE id =?", id)
+    def delete_list(params)
+      @db.execute("DELETE FROM lists WHERE id =?", [params[:id]])
     end
 
-    def find_or_create_user_by_chat_id(chat_id, state = 'initial_state')
+    def find_or_create_user_by_chat_id(chat_id)
       user = get_user_by_chat_id(chat_id)
-      if user.empty?
-        create_user(chat_id, state)
+      if user.nil?
+        create_user(chat_id: chat_id, state: 'initial_state')
         get_user_by_chat_id(chat_id)
       else
         user
       end
     end
-    
+
+    private
+
+    def user_to_hash(user)
+      { id: user[0], chat_id: user[1], state: user[2] }
+    end
+
+    def gift_to_hash(gift)
+      { id: gift[0], user_id: gift[1], gift: gift[2], link: gift[3], price: gift[4] }
+    end
+
+    def list_to_hash(list)
+      { id: list[0], wishlist: list[1], gift_id: list[2], event_date: list[3] }
+    end
+
     def close
       @db.close
     end
   end
 end
+
+
+
+# check if the gift had been chosen by smone. 0 true 1 false. The use of the type name BOOLEAN here is for readability, to SQLite it's just a type with NUMERIC affinity.
