@@ -29,7 +29,9 @@ module Core
           link TEXT,
           price INTEGER,
           if_chosen BOOLEAN,
-          FOREIGN KEY (user_id) REFERENCES users(id)
+          list_id INTEGER,
+          FOREIGN KEY (user_id) REFERENCES users(id),
+          FOREIGN KEY (list_id) REFERENCES lists(id)
         )
       SQL
     end
@@ -38,11 +40,9 @@ module Core
       @db.execute <<-SQL
         CREATE TABLE IF NOT EXISTS lists (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
-          wishlist TEXT NOT NULL,
+          wishlist_name TEXT NOT NULL,
           user_id INTEGER,
-          gift_id INTEGER,
           event_date TEXT,
-          FOREIGN KEY (gift_id) REFERENCES items(id)
           FOREIGN KEY (user_id) REFERENCES users(id)
         )
       SQL
@@ -85,7 +85,7 @@ module Core
 
     # CRUD methods for lists
     def create_list(params)
-      @db.execute("INSERT INTO lists (wishlist, gift_id, event_date) VALUES (?,?,?)", [params[:wishlist], params[:gift_id], params[:event_date]])
+      @db.execute("INSERT INTO lists (wishlist, event_date) VALUES (?,?,?)", [params[:wishlist], params[:event_date]])
     end
 
     def get_lists
@@ -93,7 +93,7 @@ module Core
     end
 
     def update_list(params)
-      @db.execute("UPDATE lists SET wishlist =?, gift_id =?, event_date =? WHERE id =?", [params[:wishlist], params[:gift_id], params[:event_date], params[:id]])
+      @db.execute("UPDATE lists SET wishlist_name =?, event_date =? WHERE id =?", [params[:wishlist], params[:gift_id], params[:event_date], params[:id]])
     end
 
     def delete_list(params)

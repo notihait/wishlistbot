@@ -32,7 +32,9 @@ module Core
         case user[:state]
         when 'creating_wishlist'
           wishlists_controller.new_wishlist(message)
-          @db.update_user(chat_id: message.from.id, state: nil)
+          @db.update_user(chat_id: message.from.id, state: 'waiting_for_wishlist_name')
+        when 'waiting_for_wishlist_name'
+          wishlists_controller.waiting_for_wishlist_name(message)
         else
           @bot.api.send_message(chat_id: message.from.id, text: 'Я хз')
         end
@@ -40,3 +42,6 @@ module Core
     end
   end
 end
+
+# добавление подарка, стейт для добавления, 
+# в долгий ящик изменение
