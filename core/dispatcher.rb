@@ -30,14 +30,10 @@ module Core
       else
         user = @db.find_or_create_user_by_chat_id(message.from.id)
         case user[:state]
-        when 'creating_wishlist'
-          wishlists_controller.new_wishlist(message)
-                        puts "User state: #{user[:state]}"
-          @db.update_user(chat_id: message.from.id, state: 'waiting_for_wishlist_name')
-        when 'waiting_for_wishlist_name'
-          wishlists_controller.waiting_for_list_name(message)
-          @db.update_user(chat_id: message.from.id, state: 'got the name')
-                        puts "User state: #{user[:state]}"
+        when 'create_wishlist'
+          wishlists_controller.create_wishlist(message)
+        when 'set_wishlist_date'
+          wishlists_controller.set_wishlist_date(message)
         else
           @bot.api.send_message(chat_id: message.from.id, text: 'Я хз')
         end

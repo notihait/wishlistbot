@@ -15,7 +15,11 @@ module Core
         CREATE TABLE IF NOT EXISTS users (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           chat_id INTEGER NOT NULL,
-          state TEXT
+          state TEXT,
+          current_wishlist_id INTEGER,
+          current_gift_id INTEGER,
+          FOREIGN KEY (current_wishlist_id) REFERENCES lists(id),
+          FOREIGN KEY (current_gift_id) REFERENCES items(id)
         )
       SQL
     end
@@ -59,7 +63,7 @@ module Core
     end
 
     def update_user(params)
-      @db.execute("UPDATE users SET state =? WHERE chat_id =?", [params[:state], params[:chat_id]])
+      @db.execute("UPDATE users SET state =?, current_wishlist_id=? WHERE chat_id =?", [params[:state], params[:current_wishlist_id], params[:chat_id]])
     end
 
     def delete_user(params)
@@ -79,23 +83,34 @@ module Core
       @db.execute("UPDATE items SET gift =?, link =?, price =? WHERE id =?", [params[:gift], params[:link], params[:price], params[:id]])
     end
 
+    def update_gift_price(params)
+      p "цена #{params[:price]}"
+      @db.execute("UPDATE lists SET price=? WHERE id=?", [params[:price], params[:id]])
+    end
+
     def delete_gift(params)
       @db.execute("DELETE FROM items WHERE id =?", [params[:id]])
     end
 
     # CRUD methods for lists
     def create_list(params)
-      @db.execute("INSERT INTO lists (wishlist, event_date) VALUES (?,?,?)", [params[:wishlist], params[:event_date]])
+      @db.execute("INSERT INTO lists (wishlist_name, event_date, user_id) VALUES (?,?,?)", [params[:wishlist_name], params[:event_date], params[:user_id]])
+      @db.last_insert_row_id
     end
 
-    def get_lists
-      @db.execute("SELECT * FROM lists").map { |list| list_to_hash(list) }
+    def get_lists(params)
+      @db.execute("SELECT * FROM lists WHERE user_id=?", [params[:user_id]]).map { |list| list_to_hash(list) }
+    end    
+
+    def update_list_wishlist_name(params)
+      @db.execute("UPDATE lists SET wishlist_name =?, event_date =? WHERE id =?", [params[:wishlist_name], params[:gift_id], params[:event_date], params[:id]])
     end
 
-    def update_list(params)
-      @db.execute("UPDATE lists SET wishlist_name =?, event_date =? WHERE id =?", [params[:wishlist], params[:gift_id], params[:event_date], params[:id]])
+    def update_list_date(params)
+      p "Дата для обновления: #{params[:event_date]}"
+      @db.execute("UPDATE lists SET event_date=? WHERE id=?", [params[:event_date], params[:id]])
     end
-
+    
     def delete_list(params)
       @db.execute("DELETE FROM lists WHERE id =?", [params[:id]])
     end
@@ -113,7 +128,7 @@ module Core
     private
 
     def user_to_hash(user)
-      { id: user[0], chat_id: user[1], state: user[2] }
+      { id: user[0], chat_id: user[1], state: user[2], current_wishlist_id: user[3] }
     end
 
     def gift_to_hash(gift)

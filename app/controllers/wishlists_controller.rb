@@ -3,24 +3,38 @@
 class WishlistsController < Controller
   def new_wishlist(message)
     user = @db.find_or_create_user_by_chat_id(message.from.id)
-    user.update(state: 'creating_wishlist')
+    @db.update_user(state: 'create_wishlist', chat_id: message.from.id)
     @bot.api.send_message(chat_id: message.from.id, text: "Введите название вишлиста:")
-    user.update(state: 'waiting_for_wishlist_name')
+  end
+  
+  def create_wishlist(message)
+    user = @db.find_or_create_user_by_chat_id(message.from.id)
+    wishlist_id = @db.create_list(wishlist_name: message.text, event_date:nil, user_id:user[:id])
+    @db.update_user(state: 'set_wishlist_date', current_wishlist_id: wishlist_id, chat_id: message.from.id)
+    p @db.find_or_create_user_by_chat_id(message.from.id)
+    @bot.api.send_message(chat_id: message.from.id, text: "Введите дату вашего события:")
+  end
+
+  def set_wishlist_date(message)
+    user = @db.find_or_create_user_by_chat_id(message.from.id)
+    @db.update_list_date(event_date: message.text, id: user[:current_wishlist_id])
+    @db.update_user(state: 'initial_state', chat_id: message.from.id)
+    @bot.api.send_message(chat_id: message.from.id, text: "Вишлист создан!")
+  end
+
+  def show_my_wishlists(message) 
+  user = @db.find_or_create_user_by_chat_id(message.from.id)
+  @db.update_user(state: 'show_my_wishlists', chat_id: message.from.id)
+  wishlists_list = @db.get_lists(user_id:user[:id])
+  @bot.api.send_message(chat_id: message.from.id, text: "Ваши вишлисты :#{wishlists_list}")
 
   end
 
-  def waiting_for_list_name(message)
-    user = @db.find_user_by_chat_id(message.from.id)
-    if user[:state] == 'waiting_for_wishlist_name'
-      @db.create_list(wishlist_name: message.text, user_id: user[:id], event_date: nil)
-      user.update(state: 'adding_gifts')
-      @bot.api.send_message(chat_id: message.from.id, text: "Вишлист '#{wishlist_name}' создан. Теперь вы можете добавлять подарки.")
-    else
-      @bot.api.send_message(chat_id: message.from.id, text: "Кажется, что-то пошло не так. Пожалуйста, начните создание вишлиста заново.")
-    end
+  def show_user_wishlists(message); 
+  #user = @db.find_or_create_user_by_chat_id(message.from.id)
+  #@db.update_user(state: 'show_user_wishlists', chat_id: message.from.id)
+  #@bot.api.send_message(chat_id: message.from.id, text: "Введите айди пользователя:")
+  #wishlists_list = @db.get_lists(user_id: message.text)
+  #@bot.api.send_message(chat_id: message.from.id, text: "Вишлисты пользователя:#{wishlists_list}")
   end
-
-  def show_my_wishlists(message); end
-
-  def show_user_wishlists(message); end
 end
