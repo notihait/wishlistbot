@@ -2,23 +2,22 @@
 
 class GiftsController < Controller
   def new_gift(message)
-    @db.find_or_create_user_by_chat_id(message.from.id)
-    @db.update_user(state: 'create_gift', chat_id: message.from.id)
-    @bot.api.send_message(chat_id: message.from.id, text: 'Введите название подарка:')
+    user = User.find_or_create_by(chat_id: message.from.id)
+    user.update(state: 'create_gift')
+    @bot.api.send_message(chat_id: message.from.id, text: 'Введіть назву подарунку:')
   end
 
   def create_gift(message)
-    user = @db.find_or_create_user_by_chat_id(message.from.id)
-    gift_id = @db.create_gift(gift: message.text, price: nil, user_id: user[:id])
-    @db.update_user(state: 'set_gift_price', current_gift_id: gift_id, chat_id: message.from.id)
-    p @db.find_or_create_user_by_chat_id(message.from.id)
-    @bot.api.send_message(chat_id: message.from.id, text: 'Укажите цену подарка:')
+    user = User.find_or_create_by(chat_id: message.from.id)
+    gift = user.current_wishlist.gifts.create(name: message.text)
+    user.update(state: 'set_gift_price', current_gift: gift)
+    @bot.api.send_message(chat_id: message.from.id, text: 'Введіть ціну подарунку:')
   end
 
   def set_gift_price(message)
-    user = @db.find_or_create_user_by_chat_id(message.from.id)
-    @db.update_gift_price(price: message.text, id: user[:current_gift_id])
-    @db.update_user(state: 'initial_state', chat_id: message.from.id)
-    @bot.api.send_message(chat_id: message.from.id, text: 'Подарок добавлен!')
+    user = User.find_or_create_by(chat_id: message.from.id)
+    user.current_gift.update(price: message.text.to_i)
+    user.update(state: 'create_gift')
+    @bot.api.send_message(chat_id: message.from.id, text: 'Подарунок додано! Введіть назву наступного подарунку або натисніть клавішу "Вийти в меню"')
   end
 end

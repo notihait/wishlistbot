@@ -20,16 +20,26 @@ module Core
 
     def process_message(message)
       return unless message.is_a?(Telegram::Bot::Types::Message)
+      
+      unless message.text.match(/^\/start/).nil?
+        if message.text.gsub("/start", "").blank?
+          home_controller.start(message)
+        else
+          wishlists_controller.show_wishlist(message)
+        end
+        return
+      end
 
       case message.text
-      when '/start'
-        home_controller.start(message)
+        
       when 'Создать вишлист'
         wishlists_controller.new_wishlist(message)
       when 'Просмотреть свои вишлисты'
         wishlists_controller.show_my_wishlists(message)
-      when 'Просмотреть вишлист друга'
-        wishlists_controller.show_user_wishlists(message)
+#      when 'Просмотреть вишлист друга'
+#        wishlists_controller.show_user_wishlist(message)
+      when 'Выйти в меню'
+        home_controller.reset_state(message)
       else
         user = User.find_or_create_by(chat_id: message.from.id)
         case user.state
