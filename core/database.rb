@@ -85,7 +85,7 @@ module Core
 
     def update_gift_price(params)
       p "цена #{params[:price]}"
-      @db.execute("UPDATE lists SET price=? WHERE id=?", [params[:price], params[:id]])
+      @db.execute("UPDATE items SET price=? WHERE id=?", [params[:price], params[:id]])
     end
 
     def delete_gift(params)

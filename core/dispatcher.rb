@@ -7,6 +7,10 @@ module Core
       @bot = bot
     end
 
+    def gifts_controller
+      @gifts_controller ||= GiftsController.new(@db, @bot)
+    end
+
     def wishlists_controller
       @wishlists_controller ||= WishlistsController.new(@db, @bot)
     end
@@ -34,6 +38,12 @@ module Core
           wishlists_controller.create_wishlist(message)
         when 'set_wishlist_date'
           wishlists_controller.set_wishlist_date(message)
+        when 'new_gift'
+          gifts_controller.new_gift(message)
+        when 'create_gift'
+          gifts_controller.create_gift(message)
+        when 'set_gift_price'
+          gifts_controller.set_gift_price(message)
         else
           @bot.api.send_message(chat_id: message.from.id, text: 'Я хз')
         end

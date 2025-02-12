@@ -18,8 +18,8 @@ class WishlistsController < Controller
   def set_wishlist_date(message)
     user = @db.find_or_create_user_by_chat_id(message.from.id)
     @db.update_list_date(event_date: message.text, id: user[:current_wishlist_id])
-    @db.update_user(state: 'initial_state', chat_id: message.from.id)
-    @bot.api.send_message(chat_id: message.from.id, text: "Вишлист создан!")
+    @db.update_user(state: 'new_gift', chat_id: message.from.id)
+    @bot.api.send_message(chat_id: message.from.id, text: "Вишлист создан! Теперь давайте добавим подарок")
   end
 
   def show_my_wishlists(message) 
