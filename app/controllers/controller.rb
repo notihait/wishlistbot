@@ -1,8 +1,7 @@
 # frozen_string_literal: true
 
 class Controller
-  def initialize(db, bot)
-    @db = db
+  def initialize(bot)
     @bot = bot
   end
 end

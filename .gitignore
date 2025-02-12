@@ -1,3 +1,4 @@
 /.idea/
 .env
 wishlist.db
+/db/*.sqlite3*
