@@ -32,13 +32,13 @@ module Core
 
       case message.text
         
-      when 'Создать вишлист'
+      when 'Створити вішліст'
         wishlists_controller.new_wishlist(message)
-      when 'Просмотреть свои вишлисты'
+      when 'Продивитись свої вішлісти'
         wishlists_controller.show_my_wishlists(message)
 #      when 'Просмотреть вишлист друга'
 #        wishlists_controller.show_user_wishlist(message)
-      when 'Выйти в меню'
+      when 'Вийти в меню'
         home_controller.reset_state(message)
       else
         user = User.find_or_create_by(chat_id: message.from.id)
